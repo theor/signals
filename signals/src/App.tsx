@@ -29,7 +29,7 @@ const firebaseConfig = {
   appId: "1:715260614346:web:63433ff1bdcb1099edc633",
 };
 
-import {ActionReceiver, ActionSender, joinRoom} from 'trystero';
+import {ActionReceiver, ActionSender, joinRoom} from 'trystero/firebase';
 
 function App() {
   const [user, _setUser] = useState<User | undefined>();
@@ -45,7 +45,7 @@ function App() {
 
     // signInAnonymously(getAuth()).then((u) => setUser(u.user));
 
-    const room = joinRoom({appId: firebaseConfig.appId}, "asd");
+    const room = joinRoom({appId: firebaseConfig.databaseURL}, "asd");
     console.log(room, room.getPeers());
     const [senddrink,ondrink] = room.makeAction<string>('drink');
     setChannel([senddrink,ondrink]);
