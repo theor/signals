@@ -2,6 +2,10 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+
+// (crypto as any).subtle = {
+// // digest: (algo:string, data:string) => Promise.resolve(data.),
+// }
 ReactDOM.createRoot(document.getElementById('root')!).render(
   // <React.StrictMode>
     <App />
