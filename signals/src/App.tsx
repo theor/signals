@@ -45,7 +45,7 @@ function App() {
 
     // signInAnonymously(getAuth()).then((u) => setUser(u.user));
 
-    const room = joinRoom({appId: firebaseConfig.databaseURL}, "asd");
+    const room = joinRoom({firebaseApp: app, appId: firebaseConfig.databaseURL}, "asd");
     console.log(room, room.getPeers());
     const [senddrink,ondrink] = room.makeAction<string>('drink');
     setChannel([senddrink,ondrink]);
