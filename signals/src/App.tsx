@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 import {
@@ -29,12 +29,12 @@ const firebaseConfig = {
   appId: "1:715260614346:web:63433ff1bdcb1099edc633",
 };
 
-import {joinRoom} from 'trystero';
+import {ActionReceiver, ActionSender, joinRoom} from 'trystero';
 
 function App() {
-  const [user, setUser] = useState<User | undefined>();
+  const [user, _setUser] = useState<User | undefined>();
   const [state, setState] = useState<string[]>([]);
-  const [channel, setChannel] = useState();
+  const [channel, setChannel] = useState<[ActionSender<string>, ActionReceiver<string>]>();
 
   useEffect(() => {
     // Initialize Firebase
@@ -47,9 +47,9 @@ function App() {
 
     const room = joinRoom({appId: firebaseConfig.appId}, "asd");
     console.log(room, room.getPeers());
-    const drink = room.makeAction('drink');
-    setChannel(drink);
-    drink[1]((data, peerId) => {
+    const [senddrink,ondrink] = room.makeAction<string>('drink');
+    setChannel([senddrink,ondrink]);
+    ondrink((data, peerId) => {
       setState(prev => [...prev, JSON.stringify(data)])
       console.log("got", peerId, data);
     });
@@ -75,7 +75,7 @@ function App() {
     <>
       <h1>{user?.uid?.substring(0, 7)}</h1>
       <div className="card">
-      <button onClick={() => channel![0]({drink: 'mezcal'})}>
+      <button onClick={() => channel![0]('mezcal')}>
           Join
         </button>
         <ul>
