@@ -15,10 +15,8 @@
     "react-dom": "^18.2.0",
     "trystero": "^0.13.0"
   },
-  "overrides": {
-    "trystero": {
-      "firebase": "^10.4.0"
-    }
+  "resolutions": {
+    "trystero/firebase": "^10.4.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
