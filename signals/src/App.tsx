@@ -29,12 +29,13 @@ const firebaseConfig = {
   appId: "1:715260614346:web:63433ff1bdcb1099edc633",
 };
 
-import {ActionReceiver, ActionSender, joinRoom} from 'trystero/firebase';
+import { ActionReceiver, ActionSender, joinRoom } from "trystero/firebase";
 
 function App() {
   const [user, _setUser] = useState<User | undefined>();
   const [state, setState] = useState<string[]>([]);
-  const [channel, setChannel] = useState<[ActionSender<string>, ActionReceiver<string>]>();
+  const [channel, setChannel] =
+    useState<[ActionSender<string>, ActionReceiver<string>]>();
 
   useEffect(() => {
     // Initialize Firebase
@@ -45,18 +46,34 @@ function App() {
 
     // signInAnonymously(getAuth()).then((u) => setUser(u.user));
 
-    const room = joinRoom({firebaseApp: app, appId: firebaseConfig.databaseURL}, "asd");
+    const room = joinRoom(
+      {
+        firebaseApp: app,
+        appId: firebaseConfig.databaseURL,
+        rtcConfig: {
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            // { urls: "stun:global.stun.twilio.com:3478?transport=udp" },
+          ],
+        },
+      },
+      "asd"
+    );
     console.log(room, room.getPeers());
-    const [senddrink,ondrink] = room.makeAction<string>('drink');
-    setChannel([senddrink,ondrink]);
+    const [senddrink, ondrink] = room.makeAction<string>("drink");
+    setChannel([senddrink, ondrink]);
     ondrink((data, peerId) => {
-      setState(prev => [...prev, JSON.stringify(data)])
+      setState((prev) => [...prev, JSON.stringify(data)]);
       console.log("got", peerId, data);
     });
-    room.onPeerJoin((peerId:string) => console.log("joined", peerId));
-    room.onPeerLeave((peerId:string) => console.log("joined", peerId));
-    room.onPeerStream((stream, peerId, metadata) => console.log("on stream", peerId, stream, metadata));
-    room.onPeerTrack((track,stream, peerId) => console.log("on track", peerId, stream, track));
+    room.onPeerJoin((peerId: string) => console.log("joined", peerId));
+    room.onPeerLeave((peerId: string) => console.log("joined", peerId));
+    room.onPeerStream((stream, peerId, metadata) =>
+      console.log("on stream", peerId, stream, metadata)
+    );
+    room.onPeerTrack((track, stream, peerId) =>
+      console.log("on track", peerId, stream, track)
+    );
 
     return () => {
       console.log("cleanup");
@@ -75,11 +92,11 @@ function App() {
     <>
       <h1>{user?.uid?.substring(0, 7)}</h1>
       <div className="card">
-      <button onClick={() => channel![0]('mezcal')}>
-          Join
-        </button>
+        <button onClick={() => channel![0]("mezcal")}>Join</button>
         <ul>
-        {state.map((x, i) => <li key={i+x}>{x}</li>)}
+          {state.map((x, i) => (
+            <li key={i + x}>{x}</li>
+          ))}
         </ul>
         {/* <button onClick={() => create()}>
           Create
