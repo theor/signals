@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import P2PT, { Peer } from "p2pt"
+import P2PT, { Peer } from "p2pt";
 
 import {
   get,
@@ -30,12 +30,20 @@ const firebaseConfig = {
   appId: "1:715260614346:web:63433ff1bdcb1099edc633",
 };
 
+interface Connection {
+  p2pt: P2PT,
+  peers: Map<string, Peer>;
+}
+
 // import { ActionReceiver, ActionSender, joinRoom } from "trystero/firebase";
 
 function App() {
+  const [connected, setConnected] = useState(false);
+  const [hasPeers, setHasPeers] = useState(0);
   const [user, _setUser] = useState<User | undefined>();
-  const [state, setState] = useState<string[]>([]);
-  const [channel, setChannel] = useState<(msg:any) => void>()
+  const [messages, setMessages] = useState<string[]>([]);
+  const [p2pt, setP2pt] = useState<Connection>()
+  // const [channel, setChannel] = useState<(msg: any) => void>();
   //   useState<[ActionSender<string>, ActionReceiver<string>]>();
 
   useEffect(() => {
@@ -49,73 +57,53 @@ function App() {
 
     let announceURLs = [
       "wss://tracker.webtorrent.dev",
-"wss://tracker.btorrent.xyz",
+      "wss://tracker.btorrent.xyz",
       "wss://tracker.openwebtorrent.com",
       // "wss://tracker.sloppyta.co:443/announce",
       // "wss://tracker.novage.com.ua:443/announce",
       // "wss://tracker.btorrent.xyz:443/announce",
-    ]
+    ];
     if (window.location.hostname === "localhost") {
-      announceURLs = ["ws://localhost:5000"]
+      announceURLs = ["ws://localhost:5000"];
     }
 
     let peers = new Map<string, Peer>();
-    let p2pt = new P2PT(announceURLs, 'signals/' + firebaseConfig.appId);
-    p2pt.on("peerconnect", e => {
+    let p2pt = new P2PT(announceURLs, "signals/" + firebaseConfig.appId);
+
+    p2pt.on("trackerconnect", (e, stats) => {
+      console.log("tracker connect", e, stats);
+      setConnected(stats.connected > 0);
+    });
+    p2pt.on("trackerwarning", (e, stats) =>{
+      // console.warn("tracker warning", e, stats)
+      setConnected(stats.connected > 0);
+    });
+    p2pt.on("peerconnect", (e) => {
       peers.set(e.id, e);
       console.log("peerconnect", e);
+      setHasPeers(peers.size);
     });
-    p2pt.on("peerclose", e => {
+    p2pt.on("peerclose", (e) => {
       peers.delete(e.id);
       console.log("peerclose", e);
+      setHasPeers(peers.size);
+
     });
     // p2pt.on("data", console.warn);
     p2pt.on("msg", (p, msg) => {
-      setState((prev) => [...prev, JSON.stringify(msg)])
+      setMessages((prev) => [...prev, JSON.stringify(msg)]);
       return console.log(msg, p);
     });
     p2pt.start();
-    setChannel((prev:(x:any) => void) => {
-      return (x: any) => {
-        console.log("send", peers);
-
-        for (const peer of peers) {
-          p2pt.send(peer[1], x);
-        }
-      };
-    });
+    setP2pt({p2pt: p2pt, peers: peers});
     console.log("this", p2pt._peerId);
-    // const room = joinRoom(
-    //   {
-    //     firebaseApp: app,
-    //     appId: firebaseConfig.databaseURL,
-    //     rtcConfig: {
-    //       iceServers: [
-    //         { urls: "stun:stun.l.google.com:19302" },
-    //         // { urls: "stun:global.stun.twilio.com:3478?transport=udp" },
-    //       ],
-    //     },
-    //   },
-    //   "asd"
-    // );
-    // console.log(room, room.getPeers());
-    // const [senddrink, ondrink] = room.makeAction<string>("drink");
-    // setChannel([senddrink, ondrink]);
-    // ondrink((data, peerId) => {
-    //   setState((prev) => [...prev, JSON.stringify(data)]);
-    //   console.log("got", peerId, data);
-    // });
-    // room.onPeerJoin((peerId: string) => console.log("joined", peerId));
-    // room.onPeerLeave((peerId: string) => console.log("joined", peerId));
-    // room.onPeerStream((stream, peerId, metadata) =>
-    //   console.log("on stream", peerId, stream, metadata)
-    // );
-    // room.onPeerTrack((track, stream, peerId) =>
-    //   console.log("on track", peerId, stream, track)
-    // );
+
+    const interval = setInterval(() => p2pt.requestMorePeers(), 3000);
 
     return () => {
       console.log("cleanup");
+      clearInterval(interval);
+      p2pt.destroy();
       // const app = getApp();
       // deleteApp(app);
       // room.leave();
@@ -123,6 +111,15 @@ function App() {
       // peerConnection.close();
     };
   }, []);
+
+  const send = (x: any) => {
+    if(!p2pt) return;
+        console.log("send", p2pt.peers);
+
+        for (const peer of p2pt.peers) {
+          p2pt.p2pt.send(peer[1], p2pt.p2pt._peerId + ":" + x);
+        }
+      };
   // useEffect(() => {
   //   if (channel) channel.onmessage = (e) => console.log("message", e);
   // }, [channel]);
@@ -131,12 +128,27 @@ function App() {
     <>
       <h1>{user?.uid?.substring(0, 7)}</h1>
       <div className="card">
-        <button onClick={() => {channel && channel("test")}}>Join</button>
+        <span>{connected ? "connected" : "disconnected"}</span>
+        <span>{connected && <>{hasPeers} peers</>}</span>
+        <button
+          onClick={() => {
+            p2pt && send("test");
+          }}
+        >
+          Send
+        </button>
         <ul>
-          {state.map((x, i) => (
+          {messages.map((x, i) => (
             <li key={i + x}>{x}</li>
           ))}
         </ul>
+        <button
+          onClick={() => {
+            p2pt && p2pt.p2pt.requestMorePeers();
+          }}
+        >
+          Refresh peers
+        </button>
         {/* <button onClick={() => create()}>
           Create
         </button>
