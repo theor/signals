@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import P2PT, { Peer } from "p2pt";
+import P2PT, { Peer } from "./p2pt";
 
 import {
   get,
