@@ -1,0 +1,21 @@
+diff --git a/package.json b/package.json
+index 9d537a8a1dd93687f4535bf2882b7b80139ec594..3fe79427b393c896ab7a5bd4e75d013c61c68187 100644
+--- a/package.json
++++ b/package.json
+@@ -11,6 +11,7 @@
+     "bittorrent-tracker": "./bin/cmd.js"
+   },
+   "browser": {
++    "./lib/client/websocket-tracker.js": true,
+     "./lib/common-node.js": false,
+     "./lib/client/http-tracker.js": false,
+     "./lib/client/udp-tracker.js": false,
+@@ -64,7 +65,7 @@
+     "node": ">=12.20.0"
+   },
+   "exports": {
+-    "import": "./index.js"
++    "./lib/client/websocket-tracker.js": "./lib/client/websocket-tracker.js"
+   },
+   "keywords": [
+     "bittorrent",
