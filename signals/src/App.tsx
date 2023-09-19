@@ -68,7 +68,10 @@ function App() {
       console.log("peerclose", e);
     });
     // p2pt.on("data", console.warn);
-    p2pt.on("msg", console.error);
+    p2pt.on("msg", (p, msg) => {
+      setState((prev) => [...prev, JSON.stringify(msg)])
+      return console.log(msg, p);
+    });
     p2pt.start();
     setChannel((prev:(x:any) => void) => {
       return (x: any) => {
