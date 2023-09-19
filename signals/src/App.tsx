@@ -48,10 +48,8 @@ function App() {
     // signInAnonymously(getAuth()).then((u) => setUser(u.user));
 
     let announceURLs = [
-"wss://tracker.fastcast.nz",
+      "wss://tracker.webtorrent.dev",
 "wss://tracker.btorrent.xyz",
-"wss://tracker.webtorrent.io",
-"wss://tracker.novage.com.ua",
       "wss://tracker.openwebtorrent.com",
       // "wss://tracker.sloppyta.co:443/announce",
       // "wss://tracker.novage.com.ua:443/announce",
