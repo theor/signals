@@ -1,4 +1,3 @@
-declare module "p2pt" {
     import type { EventEmitter } from "events";
     export default class P2PT<SendableMessage = any> extends EventEmitter {
       _peerId: string;
@@ -41,5 +40,4 @@ declare module "p2pt" {
       connected: number;
       total: number;
     }
-  }
   
